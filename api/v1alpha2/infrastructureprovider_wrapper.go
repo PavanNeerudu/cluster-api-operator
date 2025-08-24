@@ -1,5 +1,11 @@
 /*
-Copyright 2021 The Kubernetes Authors.
+Copyright 2021 The Kufunc (i *InfrastructureProvider) GetConditions() []metav1.Condition {
+	return i.Status.Conditions
+}
+
+func (i *InfrastructureProvider) SetConditions(conditions []metav1.Condition) {
+	i.Status.Conditions = conditions
+}s Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,16 +23,16 @@ limitations under the License.
 package v1alpha2
 
 import (
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ GenericProvider = &InfrastructureProvider{}
 
-func (c *InfrastructureProvider) GetConditions() clusterv1.Conditions {
+func (c *InfrastructureProvider) GetConditions() []metav1.Condition {
 	return c.Status.Conditions
 }
 
-func (c *InfrastructureProvider) SetConditions(conditions clusterv1.Conditions) {
+func (c *InfrastructureProvider) SetConditions(conditions []metav1.Condition) {
 	c.Status.Conditions = conditions
 }
 
