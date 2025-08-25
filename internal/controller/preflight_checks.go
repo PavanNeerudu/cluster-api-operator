@@ -25,6 +25,7 @@ import (
 	"github.com/google/go-github/v52/github"
 	"golang.org/x/oauth2"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/version"
@@ -34,7 +35,6 @@ import (
 	clusterctlv1 "sigs.k8s.io/cluster-api/cmd/clusterctl/api/v1alpha3"
 	configclient "sigs.k8s.io/cluster-api/cmd/clusterctl/client/config"
 	"sigs.k8s.io/cluster-api/util/conditions"
-	"k8s.io/apimachinery/pkg/api/meta"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -212,9 +212,10 @@ func preflightChecks(ctx context.Context, c client.Client, provider genericprovi
 
 	status := provider.GetStatus()
 	meta.SetStatusCondition(&status.Conditions, metav1.Condition{
-		Type:   operatorv1.PreflightCheckCondition,
-		Status: metav1.ConditionTrue,
-		Reason: "PreflightChecksPassed",
+		Type:    operatorv1.PreflightCheckCondition,
+		Status:  metav1.ConditionTrue,
+		Reason:  "PreflightChecksPassed",
+		Message: "All preflight checks passed",
 	})
 	provider.SetStatus(status)
 

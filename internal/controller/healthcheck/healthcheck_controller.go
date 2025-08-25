@@ -26,12 +26,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	operatorv1 "sigs.k8s.io/cluster-api-operator/api/v1alpha2"
 	clusterv1 "sigs.k8s.io/cluster-api/api/core/v1beta2"
-	"k8s.io/apimachinery/pkg/api/meta"
 	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 
@@ -176,17 +176,19 @@ func (r *GenericProviderHealthCheckReconciler) Reconcile(ctx context.Context, re
 		}
 		status := typedProvider.GetStatus()
 		meta.SetStatusCondition(&status.Conditions, metav1.Condition{
-			Type:   clusterv1.ReadyCondition,
-			Status: metav1.ConditionStatus(deploymentAvailableCondition.Status),
-			Reason: reason,
+			Type:    clusterv1.ReadyCondition,
+			Status:  metav1.ConditionStatus(deploymentAvailableCondition.Status),
+			Reason:  reason,
+			Message: fmt.Sprintf("Deployment availability is %s", deploymentAvailableCondition.Status),
 		})
 		typedProvider.SetStatus(status)
 	} else {
 		status := typedProvider.GetStatus()
 		meta.SetStatusCondition(&status.Conditions, metav1.Condition{
-			Type:   clusterv1.ReadyCondition,
-			Status: metav1.ConditionFalse,
-			Reason: operatorv1.NoDeploymentAvailableConditionReason,
+			Type:    clusterv1.ReadyCondition,
+			Status:  metav1.ConditionFalse,
+			Reason:  operatorv1.NoDeploymentAvailableConditionReason,
+			Message: "No deployment available to determine readiness",
 		})
 		typedProvider.SetStatus(status)
 	}

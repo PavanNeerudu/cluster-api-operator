@@ -23,11 +23,11 @@ import (
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/utils/ptr"
-	"k8s.io/apimachinery/pkg/api/meta"
 	clusterv1 "sigs.k8s.io/cluster-api/api/core/v1beta2"
 	clusterctlv1 "sigs.k8s.io/cluster-api/cmd/clusterctl/api/v1alpha3"
 	"sigs.k8s.io/cluster-api/util/patch"
@@ -642,9 +642,10 @@ func TestReconcilerPreflightConditionsFromCoreProviderEvents(t *testing.T) {
 	g.Expect(err).ToNot(HaveOccurred())
 	status := coreProvider.GetStatus()
 	meta.SetStatusCondition(&status.Conditions, metav1.Condition{
-		Type:   clusterv1.ReadyCondition,
-		Status: metav1.ConditionTrue,
-		Reason: "Ready",
+		Type:    clusterv1.ReadyCondition,
+		Status:  metav1.ConditionTrue,
+		Reason:  "Ready",
+		Message: "Provider is ready",
 	})
 	coreProvider.SetStatus(status)
 	g.Expect(patchHelper.Patch(ctx, coreProvider)).To(Succeed())
