@@ -301,7 +301,7 @@ func (p *PhaseReconciler) InitializePhaseReconciler(ctx context.Context) (*Resul
 	// Load provider's secret and config url.
 	p.configClient, err = configclient.New(ctx, "", configclient.InjectReader(reader))
 	if err != nil {
-		return &Result{}, wrapPhaseError(err, operatorv1.SecretReaderLoadFailedReason, operatorv1.ProviderInstalledCondition)
+		return &Result{}, wrapPhaseError(err, "failed to load the secret reader", operatorv1.ProviderInstalledCondition)
 	}
 
 	// Get returns the configuration for the provider with a given name/type.
@@ -335,24 +335,24 @@ func (p *PhaseReconciler) Load(ctx context.Context) (*Result, error) {
 
 	additionalManifests, err := fetchAdditionalManifests(ctx, p.ctrlClient, p.provider)
 	if err != nil {
-		return &Result{}, wrapPhaseError(err, operatorv1.AdditionalManifestsLoadFailedReason, operatorv1.ProviderInstalledCondition)
+		return &Result{}, wrapPhaseError(err, "failed to load additional manifests", operatorv1.ProviderInstalledCondition)
 	}
 
 	p.repo, err = p.configmapRepository(ctx, labelSelector, InNamespace(p.provider.GetNamespace()), WithAdditionalManifests(additionalManifests))
 	if err != nil {
-		return &Result{}, wrapPhaseError(err, operatorv1.RepositoryLoadFailedReason, operatorv1.ProviderInstalledCondition)
+		return &Result{}, wrapPhaseError(err, "failed to load the repository", operatorv1.ProviderInstalledCondition)
 	}
 
 	if spec.Version == "" {
 		// User didn't set the version, so we need to find the latest one from the matching config maps.
 		repoVersions, err := p.repo.GetVersions(ctx)
 		if err != nil {
-			return &Result{}, wrapPhaseError(err, operatorv1.VersionListFetchErrorReason, operatorv1.ProviderInstalledCondition)
+			return &Result{}, wrapPhaseError(err, fmt.Sprintf("failed to get a list of available versions for provider %q", p.provider.GetName()), operatorv1.ProviderInstalledCondition)
 		}
 
 		spec.Version, err = getLatestVersion(repoVersions)
 		if err != nil {
-			return &Result{}, wrapPhaseError(err, operatorv1.LatestVersionFetchErrorReason, operatorv1.ProviderInstalledCondition)
+			return &Result{}, wrapPhaseError(err, fmt.Sprintf("failed to get the latest version for provider %q", p.provider.GetName()), operatorv1.ProviderInstalledCondition)
 		}
 
 		// Add latest version to the provider spec.
@@ -896,18 +896,21 @@ func (p *PhaseReconciler) repositoryProxy(ctx context.Context, provider configcl
 	if !provider.SameAs(p.providerConfig) {
 		genericProvider, err := p.providerMapper(ctx, provider)
 		if err != nil {
-			return nil, wrapPhaseError(err, operatorv1.GenericProviderNotFoundReason, operatorv1.ProviderUpgradedCondition)
+			return nil, wrapPhaseError(err, "unable to find generic provider for configclient "+string(provider.Type())+": "+provider.Name(), operatorv1.ProviderUpgradedCondition)
 		}
 
 		if exists, err := p.checkConfigMapExists(ctx, *providerLabelSelector(genericProvider), genericProvider.GetNamespace()); err != nil {
-			return nil, wrapPhaseError(err, operatorv1.ConfigMapRepositoryCheckErrorReason, operatorv1.ProviderUpgradedCondition)
+			provider := client.ObjectKeyFromObject(genericProvider)
+			return nil, wrapPhaseError(err, "failed to check the config map repository existence for provider "+provider.String(), operatorv1.ProviderUpgradedCondition)
 		} else if !exists {
-			return nil, wrapPhaseError(fmt.Errorf("config map not found"), operatorv1.ConfigMapRepositoryNotFoundReason, operatorv1.ProviderUpgradedCondition)
+			provider := client.ObjectKeyFromObject(genericProvider)
+			return nil, wrapPhaseError(fmt.Errorf("config map not found"), "config map repository required for validation does not exist yet for provider "+provider.String(), operatorv1.ProviderUpgradedCondition)
 		}
 
 		repo, err := p.configmapRepository(ctx, providerLabelSelector(genericProvider), InNamespace(genericProvider.GetNamespace()), SkipComponents{})
 		if err != nil {
-			return nil, wrapPhaseError(err, operatorv1.RepositoryLoadFailedReason, operatorv1.ProviderUpgradedCondition)
+			provider := client.ObjectKeyFromObject(genericProvider)
+			return nil, wrapPhaseError(err, "failed to load the repository for provider "+provider.String(), operatorv1.ProviderUpgradedCondition)
 		}
 
 		injectRepo = repo
@@ -942,7 +945,7 @@ func getLatestVersion(repoVersions []string) (string, error) {
 	for _, versionString := range repoVersions {
 		parsedVersion, err := versionutil.ParseSemantic(versionString)
 		if err != nil {
-			return "", wrapPhaseError(err, operatorv1.VersionParsingErrorReason, operatorv1.ProviderInstalledCondition)
+			return "", wrapPhaseError(err, fmt.Sprintf("cannot parse version string: %s", versionString), operatorv1.ProviderInstalledCondition)
 		}
 
 		if latestVersion.LessThan(parsedVersion) {

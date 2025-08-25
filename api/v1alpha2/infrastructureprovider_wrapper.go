@@ -1,11 +1,5 @@
 /*
-Copyright 2021 The Kufunc (i *InfrastructureProvider) GetConditions() []metav1.Condition {
-	return i.Status.Conditions
-}
-
-func (i *InfrastructureProvider) SetConditions(conditions []metav1.Condition) {
-	i.Status.Conditions = conditions
-}s Authors.
+Copyright 2021 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

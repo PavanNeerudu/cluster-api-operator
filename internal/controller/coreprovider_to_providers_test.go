@@ -1,17 +1,7 @@
 /*
 Copyright 2025 The Kubernetes Authors.
 
-Licensed under the Apache License, Version 2.			Status: operatorv1.InfrastructureProviderStatus{
-				ProviderStatus: operatorv1.ProviderStatus{
-					Conditions: []metav1.Condition{
-						{
-							Type:               operatorv1.PreflightCheckCondition,
-							Status:             metav1.ConditionStatus(corev1.ConditionFalse),
-							LastTransitionTime: metav1.Now(),
-							Reason:             operatorv1.WaitingForCoreProviderReadyReason,
-							Message:            "Core provider is not ready",
-						},
-					},ense");
+Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 

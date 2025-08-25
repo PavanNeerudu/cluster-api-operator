@@ -65,7 +65,7 @@ func (p *PhaseReconciler) DownloadManifests(ctx context.Context) (*Result, error
 
 	exists, err := p.checkConfigMapExists(ctx, labelSelector, p.provider.GetNamespace())
 	if err != nil {
-		return &Result{}, wrapPhaseError(err, operatorv1.ConfigMapManifestsCheckErrorReason, operatorv1.ProviderInstalledCondition)
+		return &Result{}, wrapPhaseError(err, "failed to check that config map with manifests exists", operatorv1.ProviderInstalledCondition)
 	}
 
 	if exists {
@@ -147,7 +147,7 @@ func (p *PhaseReconciler) Finalize(ctx context.Context) (*Result, error) {
 		ctrl.LoggerFrom(ctx).V(5).Error(err, "Failed to update providers hash")
 	}
 
-	return &Result{}, wrapPhaseError(err, operatorv1.ProvidersHashUpdateErrorReason, operatorv1.ProviderInstalledCondition)
+	return &Result{}, wrapPhaseError(err, "FailedToUpdateProvidersHash", operatorv1.ProviderInstalledCondition)
 }
 
 // prepareConfigMapLabels returns labels that identify a config map with downloaded manifests.
